@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import {SafeProxy} from "./SafeProxy.sol";
 import {Safe} from "./Safe.sol";
+import {SafeUpgradeable} from "./SafeUpgradeable.sol";
 
 contract SafeFactory {
     address owner;
@@ -10,6 +11,7 @@ contract SafeFactory {
 
     event SafeDeployed(address indexed safe, address indexed owner);
     event ProxyDeployed(address indexed proxy, address indexed owner);
+    event ImplementationDeployed(address indexed impl);
     event ImplementationUpdated(address indexed newImpl, address indexed owner);
 
     modifier onlyOwner() {
@@ -28,7 +30,7 @@ contract SafeFactory {
         emit ImplementationUpdated(newImpl, msg.sender);
     }
 
-    // Deploy proxy, call initialize() in implementation
+    // Deploy Proxy contract, call initialize() in implementation
     function deploySafeProxy() external {
         // deploy safe proxy with owner, and point it to the implementation
         SafeProxy proxy = new SafeProxy(msg.sender, implementation);
@@ -45,11 +47,21 @@ contract SafeFactory {
         emit ProxyDeployed(proxyAddress, msg.sender);
     }
 
-    // Deploy Implementation contract
+    // Deploy Safe contract
     function depolySafe() external {
         // deploy safe contract with owner `msg.sender`
         Safe vault = new Safe(msg.sender);
         emit SafeDeployed(address(vault), msg.sender);
+    }
+
+    // deploySafeUpgradeable is for convinience
+    // It will deploy both SafeUpgradeable
+    // which is so called `Implementation`
+    // ################ Notice ################
+    // the owner is set when initialize() is called in deploySafeProxy()
+    function deploySafeUpgradeable() external {
+        SafeUpgradeable impl = new SafeUpgradeable();
+        emit ImplementationDeployed(address(impl));
     }
 
     // Get the implementation address

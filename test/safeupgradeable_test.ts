@@ -1,7 +1,7 @@
 import { ethers } from "hardhat"
 import { BigNumber, Signer } from "ethers";
 import { expect } from "chai";
-import { Safe, BaseToken } from "../typechain-types";
+import { SafeUpgradeable, BaseToken } from "../typechain-types";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 
@@ -10,12 +10,12 @@ describe("Safe", () => {
     let user1: Signer;
     let user2: Signer;
     let token: BaseToken;
-    let safe: Safe;
+    let safe: SafeUpgradeable;
     const initialBalance = ethers.utils.parseEther("1000000");
 
     async function deploySafeFixutre() {
-        const Safe = await ethers.getContractFactory("Safe");
-        const safe = await Safe.deploy(owner.getAddress());
+        const Safe = await ethers.getContractFactory("SafeUpgradeable");
+        const safe = await Safe.deploy();
         return safe;
     }
 
@@ -40,13 +40,74 @@ describe("Safe", () => {
         safe = await loadFixture(deploySafeFixutre)
     });
 
+    it("Should initialize the safe", async () => {
+        // Initialize will emit `Initialized` event
+        await expect(safe.initialize(owner.getAddress()))
+            .to.emit(safe, "Initialized")
+            .withArgs(await owner.getAddress());
+    })
+
+    it("Should failed to initialize the safe twice", async () => {
+        // First initialize success
+        await safe.initialize(owner.getAddress())
+        // Second initialize failed
+        await expect(safe.initialize(owner.getAddress()))
+            .to.revertedWith("Contract is already initialized")
+    })
+
+    describe("Should failed to call other function before initialization", async () => {
+        it("Should failed to deposit", async () => {
+            await expect(safe.connect(owner).deposit(token.address, initialBalance))
+                .to.be.revertedWith("Contract is not initialized");
+        })
+        it("Should failed to withdraw", async () => {
+            await expect(safe.connect(owner).withdraw(token.address, initialBalance))
+                .to.be.revertedWith("Contract is not initialized");
+        })
+        it("Should failed to getBalance", async () => {
+            await expect(safe.connect(owner).getBalance(user1.getAddress(), token.address))
+                .to.be.revertedWith("Contract is not initialized");
+        })
+        it("Should failed to getFee", async () => {
+            await expect(safe.connect(owner).getFee(token.address))
+                .to.be.revertedWith("Contract is not initialized");
+        })
+        it("Should failed to takeFee", async () => {
+            await expect(safe.connect(owner).takeFee(token.address))
+                .to.be.revertedWith("Contract is not initialized");
+        })
+        it("Should failed to getOwner", async () => {
+            await expect(safe.connect(owner).getOwner())
+                .to.be.revertedWith("Contract is not initialized");
+        })
+    })
+
+    it("Should get owner after initialization", async () => {
+        await safe.initialize(owner.getAddress())
+        await expect(safe.getOwner())
+            .to.eventually.be.eq(await owner.getAddress());
+    })
+
+    it("Should call fallback function", async () => {
+        await safe.initialize(owner.getAddress())
+        await expect(safe.connect(owner).fallback({
+            value: ethers.utils.parseEther("1.5"),
+            data: "0x1234",
+        }))
+            .to.not.reverted;
+        await expect(ethers.provider.getBalance(safe.address))
+            .to.eventually.be.eq(ethers.utils.parseEther("1.5"))
+    })
+
     it("Failed deposit on non zero amount of tokens", async () => {
+        await safe.initialize(owner.getAddress())
         const depositAmount = ethers.utils.parseUnits("0", 18);
         await expect(safe.connect(user1).deposit(token.address, depositAmount))
             .to.be.revertedWith("Amount should be greater than 0");
     })
 
     it("Failed deposit on transfer failed", async () => {
+        await safe.initialize(owner.getAddress())
         // Issue and approve 100000 unit of token to user1
         const depositAmount = ethers.utils.parseUnits("100000", 18);
         await expect(safe.connect(user1).deposit(token.address, depositAmount))
@@ -54,6 +115,7 @@ describe("Safe", () => {
     })
 
     it("Should deposit tokens into the safe", async () => {
+        await safe.initialize(owner.getAddress())
         // Issue and approve 100000 unit of token to user1
         const depositAmount = ethers.utils.parseUnits("100000", 18);
         await transferApprove(user1, depositAmount)
@@ -69,18 +131,21 @@ describe("Safe", () => {
     });
 
     it("Failed withdraw on non zero amount of tokens", async () => {
+        await safe.initialize(owner.getAddress())
         const withdrawAmount = ethers.utils.parseUnits("0", 18);
         await expect(safe.connect(user1).withdraw(token.address, withdrawAmount))
             .to.be.revertedWith("Amount should be greater than 0");
     })
 
     it("Failed withdraw on insufficient balance", async () => {
+        await safe.initialize(owner.getAddress())
         const withdrawAmount = ethers.utils.parseUnits("100000", 18);
         await expect(safe.connect(user1).withdraw(token.address, withdrawAmount))
             .to.be.revertedWith("Insufficient balance");
     })
 
     it("Should withdraw tokens from the safe with correct fee", async () => {
+        await safe.initialize(owner.getAddress())
         // Issue, approve, and save 100000 unit of token to user1
         const depositAmount = ethers.utils.parseUnits("100000", 18);
         await transferApprove(user1, depositAmount)
@@ -100,16 +165,19 @@ describe("Safe", () => {
     });
 
     it("Should prevent non-owners from taking the fee", async () => {
+        await safe.initialize(owner.getAddress())
         await expect(safe.connect(user1).takeFee(token.address))
-            .to.be.revertedWith("Ownable: caller is not the owner");
+            .to.be.revertedWith("Only owner can call this function");
     });
 
-    it("Should prevent taking the fee if there is no fee", async () => {
+    it("should prevent taking the fee if there is no fee", async () => {
+        await safe.initialize(owner.getAddress())
         await expect(safe.connect(owner).takeFee(owner.getAddress()))
             .to.be.revertedWith("No fees to take");
     });
 
     it("Should allow the owner to take the fee", async () => {
+        await safe.initialize(owner.getAddress())
         // Issue, approve, and save 100000 unit of token to user1
         const depositAmount = ethers.utils.parseUnits("100000", 18);
         const withdrawAmount = ethers.utils.parseUnits("100000", 18);
@@ -128,8 +196,11 @@ describe("Safe", () => {
         await expect(safe.connect(owner).getFee(token.address))
             .to.eventually.be.eq(0);
     });
+
+
     it("Should failed to getFee if not owner", async () => {
+        await safe.initialize(owner.getAddress())
         await expect(safe.connect(user1).getFee(token.address))
-            .to.be.revertedWith("Ownable: caller is not the owner");
+            .to.be.revertedWith("Only owner can call this function");
     })
 });

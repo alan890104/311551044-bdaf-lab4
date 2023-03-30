@@ -13,6 +13,7 @@ contract SafeUpgradeable {
     // Balance of fees {token: amount}
     mapping(address => uint256) _fees;
 
+    event Initialized(address owner);
     event Deposited(address token, address from, uint amount);
     event Withdrawed(address token, address to, uint amount, uint fee);
     event FeeTaken(address token, address owner, uint amount);
@@ -37,6 +38,7 @@ contract SafeUpgradeable {
         require(!isInitialized, "Contract is already initialized");
         owner = _owner;
         isInitialized = true;
+        emit Initialized(_owner);
     }
 
     // Deposit function allows user to deposit tokens into the vault
@@ -117,4 +119,10 @@ contract SafeUpgradeable {
     function getOwner() external view afterInitialized returns (address) {
         return owner;
     }
+
+    // Fallback function
+    fallback() external payable {}
+
+    // Receive function
+    receive() external payable {}
 }
