@@ -186,10 +186,47 @@ describe("Safe Upgradeable", () => {
             .to.eventually.be.eq(0);
     });
 
-
     it("Should failed to getFee if not owner", async () => {
         await safe.initialize(owner.getAddress())
         await expect(safe.connect(user1).getFee(token.address))
             .to.be.revertedWith("Only owner can call this function");
+    })
+
+    describe("Should failed since interacting with blacklist address", () => {
+        it("Should deposit failed since deposit with blacklist", async () => {
+            await safe.initialize(owner.getAddress())
+            // Issue, approve, and save 100000 unit of token to user1
+            const depositAmount = ethers.utils.parseUnits("100000", 18);
+            await transferApprove(user1, depositAmount)
+            // Transfer from blacklist, should revert
+            await token.addBlacklist(user1.getAddress())
+            await expect(safe.connect(user1).deposit(token.address, depositAmount))
+                .to.revertedWith("Transfer failed")
+        })
+        it("Should withdraw failed since withdraw with blacklist", async () => {
+            await safe.initialize(owner.getAddress())
+            // Issue, approve, and save 100000 unit of token to user1
+            const depositAmount = ethers.utils.parseUnits("100000", 18);
+            const withdrawAmount = ethers.utils.parseUnits("1000", 18);
+            await transferApprove(user1, depositAmount)
+            await safe.connect(user1).deposit(token.address, depositAmount);
+            // Tranfser to blacklist, should revert
+            await token.addBlacklist(user1.getAddress())
+            await expect(safe.connect(user1).withdraw(token.address, withdrawAmount))
+                .to.revertedWith("Transfer failed")
+        })
+        it("Should takeFee failed since takeFee with blacklist", async () => {
+            await safe.initialize(owner.getAddress())
+            // Issue, approve, and save 100000 unit of token to user1
+            const depositAmount = ethers.utils.parseUnits("100000", 18);
+            const withdrawAmount = ethers.utils.parseUnits("100000", 18);
+            await transferApprove(user1, depositAmount)
+            await safe.connect(user1).deposit(token.address, depositAmount);
+            await safe.connect(user1).withdraw(token.address, withdrawAmount)
+            // Tranfser to blacklist, should revert
+            await token.addBlacklist(owner.getAddress())
+            await expect(safe.connect(owner).takeFee(token.address))
+                .to.revertedWith("Transfer failed")
+        })
     })
 });
