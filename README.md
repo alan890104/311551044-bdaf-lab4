@@ -1,6 +1,6 @@
 # 311551044-bdaf-lab4
 
-[![codecov](https://codecov.io/gh/alan890104/311551044-bdaf-lab4/branch/main/graph/badge.svg)](https://codecov.io/gh/alan890104/311551044-bdaf)
+[![codecov](https://codecov.io/gh/alan890104/311551044-bdaf-lab4/branch/main/graph/badge.svg)](https://codecov.io/gh/alan890104/311551044-bdaf-lab4)
 
 ## Install dependencies
 
