@@ -1,13 +1,34 @@
-# Sample Hardhat Project
+# 311551044-bdaf-lab4
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+[![codecov](https://codecov.io/gh/alan890104/311551044-bdaf-lab4/branch/main/graph/badge.svg)](https://codecov.io/gh/alan890104/311551044-bdaf)
 
-Try running some of the following tasks:
+## Install dependencies
 
 ```shell
-npx hardhat help
-npx hardhat test
+npm install
+```
+
+## Compile
+
+```shell
+npx hardhat compile
+```
+
+## Test with gas report
+
+```shell
 REPORT_GAS=true npx hardhat test
+```
+
+## Test with coverage report
+
+```shell
+npx hardhat coverage
+```
+
+## Deploy
+
+```shell
 npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
