@@ -17,6 +17,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+      - name: Install hardhat
+        run: npm install --save-dev hardhat
       - name: Run Tests
         run: REPORT_GAS=true npx hardhat test
       - name: Run coverage
