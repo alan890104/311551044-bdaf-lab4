@@ -97,8 +97,6 @@ describe("SafeProxy", () => {
             suite_proxy = _proxy;
             suite_impl = _impl;
 
-
-            suite_impl.attach(suite_proxy.address).getOwner()
             // Should initialize the impl once
             await expect(suite_owner.sendTransaction({
                 to: ethers.utils.getAddress(suite_proxy.address),

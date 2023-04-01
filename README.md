@@ -2,6 +2,13 @@
 
 [![codecov](https://codecov.io/gh/alan890104/311551044-bdaf-lab4/branch/main/graph/badge.svg)](https://codecov.io/gh/alan890104/311551044-bdaf-lab4)
 
+## Gas Report
+
+- methods
+    ![gas methods](image/gas_methods.png)
+- deployments
+    ![gas deployments](image/gas_deployments.png)
+
 ## Install dependencies
 
 ```shell
