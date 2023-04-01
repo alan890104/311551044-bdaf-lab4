@@ -5,7 +5,7 @@ import { SafeUpgradeable, BaseToken } from "../typechain-types";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 
-describe("Safe", () => {
+describe("Safe Upgradeable", () => {
     let owner: Signer;
     let user1: Signer;
     let user2: Signer;
@@ -86,17 +86,6 @@ describe("Safe", () => {
         await safe.initialize(owner.getAddress())
         await expect(safe.getOwner())
             .to.eventually.be.eq(await owner.getAddress());
-    })
-
-    it("Should call fallback function", async () => {
-        await safe.initialize(owner.getAddress())
-        await expect(safe.connect(owner).fallback({
-            value: ethers.utils.parseEther("1.5"),
-            data: "0x1234",
-        }))
-            .to.not.reverted;
-        await expect(ethers.provider.getBalance(safe.address))
-            .to.eventually.be.eq(ethers.utils.parseEther("1.5"))
     })
 
     it("Failed deposit on non zero amount of tokens", async () => {

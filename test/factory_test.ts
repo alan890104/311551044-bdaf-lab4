@@ -59,7 +59,7 @@ describe("SafeFactory", () => {
         it("Should update the implementation", async () => {
             await expect(factory.connect(owner).updateImplementation(impl.address))
                 .to.emit(factory, "ImplementationUpdated")
-                .withArgs(impl.address, await owner.getAddress)
+                .withArgs(impl.address, await owner.getAddress())
 
             // Check the implementation is updated
             await expect(factory.connect(user1).getImpl())
@@ -72,7 +72,7 @@ describe("SafeFactory", () => {
             await expect(factory.connect(owner).deploySafeProxy())
                 .to.emit(factory, "ProxyDeployed")
         })
-        it("Should check the ownership of the proxy and impl", async () => {
+        it("Should failed to deploy proxy", async () => {
             // Deploy new Implementation
             let tx = await factory.connect(owner).depolySafe()
             let receipt = await tx.wait()
@@ -86,28 +86,36 @@ describe("SafeFactory", () => {
 
 
             // Deploy the proxy
-            tx = await factory.connect(user1).deploySafeProxy()
-            receipt = await tx.wait()
-            events = receipt.events!;
-            contractAddr = `0x${events[2].topics[1].slice(26)}`;
-            let proxyFactory = await loadFixture(proxyFactoryFixture)
-            proxy = proxyFactory.attach(contractAddr)
-
-
-            // Check implementation owner is set
-            let result = await owner.sendTransaction({
-                to: proxy.address,
-                data: impl.interface.encodeFunctionData("getOwner"),
-            })
-            await expect(impl.getOwner())
-                .to.eventually.be.equal(await user1.getAddress())
+            await expect(factory.connect(user1).deploySafeProxy())
+                .to.revertedWith("failed to initialize proxy")
         })
-    })
+        it("Should check the ownership of the proxy and impl", async () => {
+            // Deploy new safeupgradeable
+            const implFactory = await implFactoryFixure()
+            const newImpl = await implFactory.deploy();
 
-    describe("Deploy SafeUpgradeable", () => {
-        it("Should deploy a new safe upgradeable impl", async () => {
-            const tx = factory.connect(owner).deploySafeUpgradeable()
-            await expect(tx).to.emit(factory, "ImplementationDeployed")
+            // Update the implementation
+            const updateTmplPromise = factory.connect(owner).updateImplementation(newImpl.address)
+            await expect(updateTmplPromise).to.emit(factory, "ImplementationUpdated")
+
+            // Deploy new proxy by deploySafeProxy
+            const deployProxyPromise = factory.connect(owner).deploySafeProxy()
+            await expect(deployProxyPromise).to.emit(factory, "ProxyDeployed")
+
+            // Get the proxy address
+            const deployProxyEvents = await factory.queryFilter(factory.filters.ProxyDeployed())
+            const proxyAddress = deployProxyEvents[0].args.proxy
+
+            // Get the proxy contract and check ownership
+            const deployedProxy = await ethers.getContractAt("SafeProxy", proxyAddress)
+            await expect(deployedProxy.getOwner())
+                .to.be.eventually.eq(await owner.getAddress())
+
+            // Get the implementation contract and check ownership
+            let deployedImpl = await ethers.getContractAt("SafeUpgradeable", await deployedProxy.getImpl())
+            deployedImpl = deployedImpl.attach(proxyAddress)
+            await expect(deployedImpl.getOwner())
+                .to.be.eventually.eq(await owner.getAddress())
         })
     })
 })

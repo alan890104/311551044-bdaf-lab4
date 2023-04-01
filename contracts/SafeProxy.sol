@@ -7,8 +7,6 @@ contract SafeProxy {
 
     event ImplChanged(address indexed implementation);
     event OwnerChanged(address indexed owner);
-    event ReceiveCalled(address caller);
-    event FallbackCalled(address caller, bytes data);
 
     modifier onlyOwner() {
         require(msg.sender == getOwner(), "only owner can call this function");
@@ -94,14 +92,7 @@ contract SafeProxy {
     }
 
     // fallback function is triggered when call data is not empty
-    fallback() external payable {
-        emit FallbackCalled(msg.sender, msg.data);
-        _delegate(getImpl());
-    }
-
-    // receive function is triggered when call data is empty
-    receive() external payable {
-        emit ReceiveCalled(msg.sender);
+    fallback() external {
         _delegate(getImpl());
     }
 }

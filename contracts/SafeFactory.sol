@@ -34,8 +34,10 @@ contract SafeFactory {
     function deploySafeProxy() external {
         // deploy safe proxy with owner, and point it to the implementation
         SafeProxy proxy = new SafeProxy(msg.sender, implementation);
+
         // get the depolyed proxy address
         address proxyAddress = address(proxy);
+
         // Call function initialize() in proxy
         // However, this function is not in the ABI of proxy
         // It will be "redirect" by the proxy to the implementation
@@ -44,6 +46,7 @@ contract SafeFactory {
             abi.encodeWithSignature("initialize(address)", msg.sender)
         );
         require(success, "failed to initialize proxy");
+
         emit ProxyDeployed(proxyAddress, msg.sender);
     }
 
@@ -52,16 +55,6 @@ contract SafeFactory {
         // deploy safe contract with owner `msg.sender`
         Safe vault = new Safe(msg.sender);
         emit SafeDeployed(address(vault), msg.sender);
-    }
-
-    // deploySafeUpgradeable is for convinience
-    // It will deploy both SafeUpgradeable
-    // which is so called `Implementation`
-    // ################ Notice ################
-    // the owner is set when initialize() is called in deploySafeProxy()
-    function deploySafeUpgradeable() external {
-        SafeUpgradeable impl = new SafeUpgradeable();
-        emit ImplementationDeployed(address(impl));
     }
 
     // Get the implementation address

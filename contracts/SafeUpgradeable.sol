@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract SafeUpgradeable {
     // Upgradeable pattern variables, check if contract is initialized
@@ -119,10 +120,4 @@ contract SafeUpgradeable {
     function getOwner() external view afterInitialized returns (address) {
         return owner;
     }
-
-    // Fallback function
-    fallback() external payable {}
-
-    // Receive function
-    receive() external payable {}
 }
