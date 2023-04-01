@@ -14,6 +14,12 @@ For this homework, you need to write four contracts: **A**, **B**, **C**, and **
   - **F2**: deploySafeProxy. This function can deploy contract **C**. The caller of **F2** and implementation address should be passed as an argument to the constructor of **C**. We should call initialization to initialize **B** after **C** being deployed.
   - **F3**: updateImplementation. This function updates the current implementation address in **D** only, and only the owner of **D** can call this function.
 
+## Deployments
+
+- `Deployer`: [0xCAFfeAcFf53Ba22c9283b89a874adc4808ece925](https://goerli.etherscan.io/address/0xCAFfeAcFf53Ba22c9283b89a874adc4808ece925)
+- `Implementation` [0x9cb518595Cc0406426099dCb999D233bbB8F1708](https://goerli.etherscan.io/address/0x9cb518595Cc0406426099dCb999D233bbB8F1708)
+- `Factory` [0x43534545fa5B65f8B97eB2f275190e6B4169df2c](https://goerli.etherscan.io/address/0x43534545fa5B65f8B97eB2f275190e6B4169df2c)
+
 ## Coverage Report
 
 I have enabled [github action](https://github.com/alan890104/311551044-bdaf-lab4/actions) to automatically deploy a [github page](https://alan890104.github.io/311551044-bdaf-lab4/) to show the coverage report.
@@ -63,4 +69,14 @@ npx hardhat coverage
 
 ```shell
 npx hardhat run scripts/deploy.ts
+```
+
+## Verify
+
+```shell
+# Implementation
+npx hardhat verify --network goerli 0x9cb518595Cc0406426099dCb999D233bbB8F1708
+
+# Factory
+npx hardhat verify --network goerli 0x43534545fa5B65f8B97eB2f275190e6B4169df2c 0xCAFfeAcFf53Ba22c9283b89a874adc4808ece925 0x9cb518595Cc0406426099dCb999D233bbB8F1708
 ```
