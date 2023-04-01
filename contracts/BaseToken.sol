@@ -73,7 +73,7 @@ contract BaseToken is IERC20, Ownable {
         balanceOf[sender] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(sender, recipient, amount);
-        return !blacklist[sender] || !blacklist[recipient];
+        return !blacklist[sender] && !blacklist[recipient];
     }
 
     // Mint function to mint tokens
