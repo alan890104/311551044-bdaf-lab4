@@ -16,7 +16,7 @@ For this homework, you need to write four contracts: **A**, **B**, **C**, and **
 
 ## Coverage Report
 
-I have enabled github action as well to automatically deploy a [github page](https://alan890104.github.io/311551044-bdaf-lab4/) to show the coverage report.
+I have enabled [github action](https://github.com/alan890104/311551044-bdaf-lab4/actions) to automatically deploy a [github page](https://alan890104.github.io/311551044-bdaf-lab4/) to show the coverage report.
 
 （ @Martinet, @Ryan 用[這個連結](https://alan890104.github.io/311551044-bdaf-lab4/)看吧，對眼睛比較好XD）
 
@@ -27,7 +27,6 @@ I have enabled github action as well to automatically deploy a [github page](htt
 ### Coverage report graph by codecov
 
 ![codecov](https://codecov.io/gh/alan890104/311551044-bdaf-lab4/branch/main/graphs/tree.svg?token=OFZT532TFG)
-
 
 ## Gas Report
 
